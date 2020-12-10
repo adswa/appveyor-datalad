@@ -46,7 +46,7 @@ shallow_clone: true
 
 
 environment:
-  DATALAD_TESTS_SSH: 1
+  #DATALAD_TESTS_SSH: 1
 
   # Do not use `image` as a matrix dimension, to have fine-grained control over
   # what tests run on which platform
@@ -58,7 +58,7 @@ environment:
       APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       # Python version specification is non-standard on windows
       PY: 38-x64
-      DTS: datalad.core
+      DTS: datalad.support.tests.test_gitrepo
     ## Windows tests that should run but may fail
     #- ID: WinP38plugin
     #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -68,14 +68,15 @@ environment:
     # Ubuntu core tests
     - ID: Ubu20core
       APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu2004
-      DTS: datalad.core
+      DTS: datalad.support.tests.test_gitrepo
       INSTALL_SYSPKGS: python3-virtualenv git-annex
     # MacOS core tests
     - ID: MacP38core
       APPVEYOR_BUILD_WORKER_IMAGE: macOS
       PY: 3.8
-      DTS: datalad.core
+      DTS: datalad.support.tests.test_gitrepo
       INSTALL_SYSPKGS: git-annex
+      DATALAD_LOCATIONS_SOCKETS: ${HOME}/TMP/sockets
 
 
 matrix:
@@ -154,7 +155,7 @@ install:
 
 build_script:
   - pip install nose coverage
-  - pip install git+https://github.com/datalad/datalad.git@master
+  - pip install git+https://github.com/mih/datalad.git@rf-socketdir
 
 
 #after_build:
@@ -180,7 +181,13 @@ test_script:
 
 
 after_test:
-  - bash <(curl -s https://codecov.io/bash)
+  # prepare coverage.xml in a separate invocation.
+  # if invoked directly with nose - do not include test_ files themselves
+  - python -m coverage xml
+  - cmd: powershell Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+  - cmd: "set PATH=C:\\msys64\\usr\\bin;%PATH%"
+  - cmd: bash codecov.sh -f "coverage.xml" -U "-s" -A "-s" 
+  - sh: bash <(curl -s https://codecov.io/bash)
 
 
 #on_success:
