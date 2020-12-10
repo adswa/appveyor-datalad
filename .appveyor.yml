@@ -54,11 +54,11 @@ environment:
   # an intelligible name can help to locate a specific test run
   matrix:
     ## Windows core tests
-    #- ID: WinP38core
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    #  # Python version specification is non-standard on windows
-    #  PY: 38-x64
-    #  DTS: datalad.core
+    - ID: WinP38core
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      # Python version specification is non-standard on windows
+      PY: 38-x64
+      DTS: datalad.core
     ## Windows tests that should run but may fail
     #- ID: WinP38plugin
     #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
@@ -179,8 +179,8 @@ test_script:
   - sh:  python -m nose --traverse-namespace -s -v -A "not (turtle)" --with-cov --cover-package datalad ${DTS}
 
 
-#after_test:
-#
+after_test:
+  - bash <(curl -s https://codecov.io/bash)
 
 
 #on_success:
